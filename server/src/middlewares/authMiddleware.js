@@ -1,34 +1,34 @@
 import jwt from "jsonwebtoken";
-import User from "../models/User.js"
+import User from "../models/User.js";
 
-export const protect = async (req, resizeBy, next)=>{
-    let toekn;
+export const protect = async (req, res, next) => {
+    let token;
 
     // Read token from Authorization header
     if(
         req.headers.authorization &&
-        req.headers.authorization.startWith("Bearer")
+        req.headers.authorization.startsWith("Bearer")
     ){
         try{
-            token=req.headers.authorization.split(" ")[1];
+            token = req.headers.authorization.split(" ")[1];
 
-            //Verify token
-            const decoded= jwt.verify(token, process.env.JWT_SECRET);
+            // Verify token
+            const decoded = jwt.verify(token, process.env.JWT_SECRET);
 
             // Fetch user & attach to request
-            req.User = await User.findById(decoded.id).select("-password");
+            req.user = await User.findById(decoded.id).select("-password");
 
-            next();
+            return next();
 
         }catch(error){
-            return res.status(401).json({message: "Invalid toekn"});
+            return res.status(401).json({message: "Invalid token"});
         }
     }
 
     if(!token){
         return res.status(401).json({message:"Not Authorized, no token"});
     }
-}
+};
 
 export const adminOnly =(req, res, next) =>{
     if(req.user && req.user.role ==="admin"){
